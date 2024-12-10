@@ -185,6 +185,14 @@ class ObjectCaptureService: ObservableObject {
                 if self.capturedImages.count >= self.minimumRequiredImages {
                     print("🎯 Minimum images reached (\(self.minimumRequiredImages)), starting processing")
                     logger.info("Minimum images reached, starting processing")
+                    
+                    // Stop the camera session before processing
+                    if let arView = ScanningView.shared?.arView {
+                        print("📸 Stopping camera session")
+                        arView.session.pause()
+                        // Don't remove the view since we still want to show the UI
+                    }
+                    
                     self.scanState = .processing
                     await self.finishCapture()
                 }
@@ -323,6 +331,13 @@ class ObjectCaptureService: ObservableObject {
         Task {
             logger.info("Cancelling scan")
             await session?.cancel()
+            
+            // Stop camera session
+            if let arView = ScanningView.shared?.arView {
+                print("📸 Stopping camera session")
+                arView.session.pause()
+            }
+            
             cleanup()
             scanState = .ready
             progress = 0.0
