@@ -10,23 +10,59 @@ import RealityKit
 import ARKit
 
 struct ContentView: View {
-    @State private var selectedTab = 0
+    @AppStorage("selectedTab") private var selectedTab: Int = 0
+    @EnvironmentObject private var authService: AuthenticationService
+    @State private var showingProfile = false
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            ScanView()
-                .tabItem {
-                    Label("Scan", systemImage: "scanner.fill")
+        NavigationStack {
+            TabView(selection: $selectedTab) {
+                ScanView()
+                    .tabItem {
+                        Label("Scan", systemImage: "scanner.fill")
+                    }
+                    .tag(0)
+                
+                DigitalChestView()
+                    .tabItem {
+                        Label("My Items", systemImage: "cube.box.fill")
+                    }
+                    .tag(1)
+            }
+            .tint(.blue)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingProfile.toggle()
+                    } label: {
+                        Image(systemName: "person.circle")
+                    }
                 }
-                .tag(0)
-            
-            DigitalChestView()
-                .tabItem {
-                    Label("My Items", systemImage: "cube.box.fill")
+            }
+            .sheet(isPresented: $showingProfile) {
+                NavigationStack {
+                    List {
+                        Section {
+                            if let user = authService.user {
+                                Text(user.email ?? "No email")
+                                Text(user.displayName ?? "No name")
+                            }
+                        }
+                        
+                        Section {
+                            Button(role: .destructive) {
+                                try? authService.signOut()
+                            } label: {
+                                Text("Sign Out")
+                            }
+                        }
+                    }
+                    .navigationTitle("Profile")
+                    .navigationBarTitleDisplayMode(.inline)
                 }
-                .tag(1)
+                .presentationDetents([.medium])
+            }
         }
-        .tint(.blue)
     }
 }
 

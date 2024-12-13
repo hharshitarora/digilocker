@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7A2E9FA02D0A775600329CA3 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 7A2E9F9F2D0A775600329CA3 /* FirebaseAuth */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7A3D40172CDF1A4800C2ED6D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7A2E9FA02D0A775600329CA3 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = DigiLocker;
 			packageProductDependencies = (
+				7A2E9F9F2D0A775600329CA3 /* FirebaseAuth */,
 			);
 			productName = DigiLocker;
 			productReference = 7A3D40062CDF1A4700C2ED6D /* DigiLocker.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = 7A3D3FFD2CDF1A4700C2ED6D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7A2E9F972D09447400329CA3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7A3D40072CDF1A4700C2ED6D /* Products */;
 			projectDirPath = "";
@@ -575,6 +584,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7A2E9F972D09447400329CA3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7A2E9F9F2D0A775600329CA3 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7A2E9F972D09447400329CA3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7A3D3FFE2CDF1A4700C2ED6D /* Project object */;
 }

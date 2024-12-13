@@ -4,6 +4,8 @@ import RealityKit
 struct ModelDisplayView: View {
     let modelURL: URL
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("selectedTab") private var selectedTab: Int = 0  // Add this to track selected tab
+    @Environment(\.presentationMode) private var presentationMode // Add this
     
     var body: some View {
         NavigationStack {
@@ -20,7 +22,13 @@ struct ModelDisplayView: View {
                     // Top bar with controls
                     HStack {
                         Button("Done") {
-                            dismiss()
+                            selectedTab = 1  // Switch to "My Items" tab (index 1)
+                            dismiss() // Dismiss current view
+                            // Dismiss the entire scanning sheet
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let rootViewController = windowScene.windows.first?.rootViewController {
+                                rootViewController.dismiss(animated: true)
+                            }
                         }
                         .padding()
                         
