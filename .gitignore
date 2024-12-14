@@ -1,0 +1,6 @@
+# Ignore actual configuration file with secrets
+Configuration.plist
+GoogleService-Info.plist
+
+# Don't ignore the template
+!Configuration.template.plist 

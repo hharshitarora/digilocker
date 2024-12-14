@@ -11,7 +11,22 @@ import FirebaseCore
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        FirebaseApp.configure()
+        let config = Configuration.shared
+        
+        // If no configuration is found, fall back to default Firebase configuration
+        if config.firebaseApiKey.isEmpty {
+            FirebaseApp.configure()
+        } else {
+            let options = FirebaseOptions(
+                googleAppID: config.firebaseAppId,
+                gcmSenderID: "272940680090"  // Use your actual sender ID
+            )
+            options.apiKey = config.firebaseApiKey
+            options.projectID = config.firebaseProjectId
+            options.storageBucket = config.firebaseStorageBucket
+            
+            FirebaseApp.configure(options: options)
+        }
         return true
     }
 }
