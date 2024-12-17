@@ -1,5 +1,5 @@
 # Ignore configuration files with secrets
-GoogleService-Info.plist
+/Users/harshitarora/Library/CloudStorage/OneDrive-Personal/My Stuff/Coding/DigiLocker/DigiLocker/Config
 Configuration.plist
 
 # Don't ignore templates
