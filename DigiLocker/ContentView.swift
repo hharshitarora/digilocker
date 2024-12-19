@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import ARKit
+import FirebaseAuth
 
 struct ContentView: View {
     @AppStorage("selectedTab") private var selectedTab: Int = 0
@@ -134,58 +135,6 @@ struct ScanView: View {
     }
 }
 
-struct DigitalChestView: View {
-    @StateObject private var dataManager = DataManager()
-    @State private var searchText = ""
-    
-    var filteredItems: [ScannedItem] {
-        if searchText.isEmpty {
-            return dataManager.items
-        }
-        return dataManager.items.filter { item in
-            item.name.localizedCaseInsensitiveContains(searchText) ||
-            item.description.localizedCaseInsensitiveContains(searchText) ||
-            item.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
-    
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 16) {
-                    ForEach(filteredItems) { item in
-                        NavigationLink(destination: ItemDetailView(item: item, dataManager: dataManager)) {
-                            ItemCard(item: item)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding()
-            }
-            .navigationTitle("Digital Chest")
-            .searchable(text: $searchText, prompt: "Search items...")
-            .overlay {
-                if dataManager.items.isEmpty {
-                    ContentUnavailableView {
-                        Label("No Items Yet", systemImage: "cube.box.fill")
-                    } description: {
-                        Text("Start scanning items to build your digital collection")
-                    }
-                } else if filteredItems.isEmpty {
-                    ContentUnavailableView {
-                        Label("No Results", systemImage: "magnifyingglass")
-                    } description: {
-                        Text("Try searching with different keywords")
-                    }
-                }
-            }
-        }
-    }
-}
-
 // Supporting Views and Models
 struct TipRow: View {
     let icon: String
@@ -257,6 +206,7 @@ struct ItemDetailView: View {
     let item: ScannedItem
     let dataManager: DataManager
     @State private var isEditing = false
+    @State private var showingModel = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -285,28 +235,19 @@ struct ItemDetailView: View {
                         .font(.body)
                         .foregroundStyle(.secondary)
                     
-                    // Tags
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(item.tags, id: \.self) { tag in
-                                Text(tag)
-                                    .font(.caption)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(.blue.opacity(0.1))
-                                    .foregroundStyle(.blue)
-                                    .clipShape(Capsule())
-                            }
+                    Button(action: { showingModel = true }) {
+                        HStack {
+                            Image(systemName: "cube.transparent")
+                            Text("View 3D Model")
                         }
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(height: 50)
+                        .frame(maxWidth: .infinity)
+                        .background(.blue)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    
-                    // Metadata
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Details")
-                            .font(.headline)
-                        
-                        DetailRow(icon: "calendar", title: "Scanned", value: item.dateScanned.formatted(date: .abbreviated, time: .shortened))
-                    }
+                    .padding(.top)
                 }
                 .padding()
             }
@@ -316,6 +257,9 @@ struct ItemDetailView: View {
             EditItemSheet(item: item) { updatedItem in
                 dataManager.updateItem(updatedItem)
             }
+        }
+        .fullScreenCover(isPresented: $showingModel) {
+            ModelDisplayView(modelURL: item.modelURL)
         }
     }
 }
@@ -534,7 +478,7 @@ struct EditItemSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         let updatedItem = ScannedItem(
-                            id: item.id,
+                            id: item.id, userId: item.userId,
                             name: itemName,
                             description: itemDescription,
                             dateScanned: item.dateScanned,

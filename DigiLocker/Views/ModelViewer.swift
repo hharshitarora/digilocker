@@ -1,6 +1,7 @@
 import SwiftUI
 import RealityKit
 import QuickLook
+import FirebaseStorage
 
 // Add ModelLoadingError enum at the top level
 enum ModelLoadingError: LocalizedError {
@@ -23,63 +24,130 @@ struct ModelViewer: View {
     @State private var loadError: Error?
     @State private var currentAngle: Angle = .zero
     @State private var currentScale: Float = 1.0
+    @State private var localURL: URL?
+    @State private var isLoading = true
     
     var body: some View {
         ZStack {
-            if let error = loadError {
-                // Show error view or QuickLook fallback
-                QuickLookPreview(url: modelURL)
-                    .edgesIgnoringSafeArea(.all)
-            } else {
-                // RealityKit viewer
-                RealityView { content in
-                    let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: .zero))
-                    content.add(anchor)
-                    
-                    Task {
-                        do {
-                            print("📱 Loading USDZ model from URL: \(modelURL.path)")
-                            let model = try await Entity.loadModelAsync(contentsOf: modelURL)
-                            
-                            if let modelEntity = model as? ModelEntity {
-                                print("✅ Model loaded successfully")
-                                configureModel(modelEntity)
-                                anchor.addChild(modelEntity)
-                                addLighting(to: anchor)
-                                
-                                await MainActor.run {
-                                    self.modelEntity = modelEntity
-                                }
-                            } else {
-                                throw ModelLoadingError.invalidModelType
-                            }
-                        } catch {
-                            print("❌ Failed to load model: \(error.localizedDescription)")
-                            await MainActor.run {
-                                loadError = error
-                            }
-                        }
-                    }
-                } update: { content in
-                    if let modelEntity = modelEntity {
-                        modelEntity.transform.rotation = simd_quatf(angle: Float(currentAngle.radians), axis: [0, 1, 0])
-                        modelEntity.scale = [currentScale, currentScale, currentScale]
+            if isLoading {
+                ProgressView("Loading model...")
+            } else if let error = loadError {
+                if let localURL = localURL {
+                    QuickLookPreview(url: localURL)
+                        .edgesIgnoringSafeArea(.all)
+                } else {
+                    ContentUnavailableView {
+                        Label("Error Loading Model", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text(error.localizedDescription)
                     }
                 }
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            currentAngle += Angle(degrees: value.translation.width)
+            } else {
+                // RealityKit viewer with downloaded model
+                if let localURL = localURL {
+                    RealityView { content in
+                        let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: .zero))
+                        content.add(anchor)
+                        
+                        Task {
+                            do {
+                                print(" Loading USDZ model from local URL: \(localURL.path)")
+                                let model = try await Entity.loadModelAsync(contentsOf: localURL)
+                                
+                                if let modelEntity = model as? ModelEntity {
+                                    print("✅ Model loaded successfully")
+                                    configureModel(modelEntity)
+                                    anchor.addChild(modelEntity)
+                                    addLighting(to: anchor)
+                                    
+                                    await MainActor.run {
+                                        self.modelEntity = modelEntity
+                                    }
+                                } else {
+                                    throw ModelLoadingError.invalidModelType
+                                }
+                            } catch {
+                                print("❌ Failed to load model: \(error.localizedDescription)")
+                                await MainActor.run {
+                                    loadError = error
+                                }
+                            }
                         }
-                )
-                .gesture(
-                    MagnificationGesture()
-                        .onChanged { value in
-                            currentScale = Float(value)
+                    } update: { content in
+                        if let modelEntity = modelEntity {
+                            modelEntity.transform.rotation = simd_quatf(angle: Float(currentAngle.radians), axis: [0, 1, 0])
+                            modelEntity.scale = [currentScale, currentScale, currentScale]
                         }
-                )
+                    }
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                currentAngle += Angle(degrees: value.translation.width)
+                            }
+                    )
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { value in
+                                currentScale = Float(value)
+                            }
+                    )
+                }
             }
         }
+        .task {
+            await downloadModel()
+        }
+    }
+    
+    private func downloadModel() async {
+        do {
+            let fileURL = try await downloadIfNeeded(url: modelURL)
+            await MainActor.run {
+                self.localURL = fileURL
+                self.isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.loadError = error
+                self.isLoading = false
+            }
+        }
+    }
+    
+    private func downloadIfNeeded(url: URL) async throws -> URL {
+        // If it's already a local file, return it
+        if url.isFileURL {
+            return url
+        }
+        
+        // Create a local cache directory if needed
+        let cacheDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ModelCache", isDirectory: true)
+        try? FileManager.default.createDirectory(at: cacheDir, 
+                                               withIntermediateDirectories: true)
+        
+        // Generate a unique local filename based on the URL path
+        let fileName = url.lastPathComponent
+        let localURL = cacheDir.appendingPathComponent(fileName)
+        
+        // If we already have this file cached, return it
+        if FileManager.default.fileExists(atPath: localURL.path) {
+            print("📱 Using cached model at: \(localURL.path)")
+            return localURL
+        }
+        
+        print("⬇️ Starting model download from: \(url.absoluteString)")
+        
+        // Get Firebase Storage reference
+        let storage = Storage.storage()
+        let storageRef = storage.reference(forURL: url.absoluteString)
+        
+        // Download to local file
+        print("⬇️ Downloading model...")
+        _ = try await storageRef.write(toFile: localURL)
+        print("✅ Download complete at: \(localURL.path)")
+        
+        return localURL
     }
     
     private func configureModel(_ model: ModelEntity) {

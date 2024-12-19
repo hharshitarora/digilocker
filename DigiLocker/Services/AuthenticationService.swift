@@ -6,6 +6,10 @@ class AuthenticationService: ObservableObject {
     @Published var isAuthenticated = false
     @Published var error: Error?
     
+    var currentUserId: String? {
+        return user?.uid
+    }
+    
     init() {
         print("🔥 Initializing AuthenticationService")
         Auth.auth().addStateDidChangeListener { [weak self] _, user in
@@ -41,6 +45,8 @@ class AuthenticationService: ObservableObject {
             changeRequest.displayName = name
             try await changeRequest.commitChanges()
             print("🔥 Sign up successful for user: \(result.user.email ?? "")")
+            print("🔥 User ID: \(result.user.uid)")
+            
             await MainActor.run {
                 self.user = result.user
                 self.isAuthenticated = true

@@ -2,14 +2,16 @@ import Foundation
 
 struct ScannedItem: Identifiable, Codable, Hashable {
     let id: UUID
+    let userId: String
     var name: String
     var description: String
     var dateScanned: Date
     var tags: [String]
     var modelURL: URL
     
-    init(id: UUID = UUID(), name: String, description: String, dateScanned: Date = Date(), tags: [String], modelURL: URL) {
+    init(id: UUID = UUID(), userId: String, name: String, description: String, dateScanned: Date = Date(), tags: [String], modelURL: URL) {
         self.id = id
+        self.userId = userId
         self.name = name
         self.description = description
         self.dateScanned = dateScanned
@@ -27,6 +29,6 @@ struct ScannedItem: Identifiable, Codable, Hashable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, description, dateScanned, tags, modelURL
+        case id, userId, name, description, dateScanned, tags, modelURL
     }
 } 

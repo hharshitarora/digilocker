@@ -24,6 +24,8 @@ class ObjectCaptureService: ObservableObject {
     )
     
     private let dataManager: DataManager
+    private let storageManager: StorageManager
+    private let authService: AuthenticationService
     
     enum ScanState {
         case ready
@@ -54,8 +56,12 @@ class ObjectCaptureService: ObservableObject {
     }
     
     @MainActor
-    init(dataManager: DataManager = DataManager()) {
+    init(dataManager: DataManager = DataManager(),
+         storageManager: StorageManager = StorageManager(),
+         authService: AuthenticationService = AuthenticationService()) {
         self.dataManager = dataManager
+        self.storageManager = storageManager
+        self.authService = authService
         Task {
             await checkCameraAuthorization()
         }
@@ -275,17 +281,34 @@ class ObjectCaptureService: ObservableObject {
                 case .processingComplete:
                     logger.info("🎉 Processing complete!")
                     if FileManager.default.fileExists(atPath: modelURL.path) {
-                        logger.info("💾 Model saved at: \(modelURL.path)")
-                        self.scanState = .completed
+                        logger.info("💾 Model saved locally at: \(modelURL.path)")
                         
-                        // Save to DataManager
+                        // Get current user ID
+                        guard let userId = authService.currentUserId else {
+                            throw ObjectCaptureError.processingFailed("User not authenticated")
+                        }
+                        
+                        // Upload to Firebase Storage
+                        let storageURL = try await storageManager.uploadScanModel(
+                            userId: userId,
+                            fileURL: modelURL
+                        )
+                        
+                        logger.info("☁️ Model uploaded to: \(storageURL.absoluteString)")
+                        
+                        // Save to DataManager with user ID
                         let newItem = ScannedItem(
+                            id: UUID(),
+                            userId: userId,
                             name: "Scanned Object",
                             description: "3D scan created on \(Date().formatted())",
+                            dateScanned: Date(),
                             tags: ["3D Scan"],
-                            modelURL: modelURL
+                            modelURL: storageURL
                         )
                         self.dataManager.addItem(newItem)
+                        
+                        self.scanState = .completed
                     }
                     
                 case .requestError(_, let error):

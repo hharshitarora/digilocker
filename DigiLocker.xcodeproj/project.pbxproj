@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7A23F1F92D111D3C00DC5CCB /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7A23F1F82D111D3C00DC5CCB /* FirebaseFirestore */; };
+		7A23F1FB2D111D6100DC5CCB /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 7A23F1FA2D111D6100DC5CCB /* FirebaseStorage */; };
 		7A2E9FA02D0A775600329CA3 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 7A2E9F9F2D0A775600329CA3 /* FirebaseAuth */; };
 /* End PBXBuildFile section */
 
@@ -70,6 +72,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A2E9FA02D0A775600329CA3 /* FirebaseAuth in Frameworks */,
+				7A23F1F92D111D3C00DC5CCB /* FirebaseFirestore in Frameworks */,
+				7A23F1FB2D111D6100DC5CCB /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,6 +135,8 @@
 			name = DigiLocker;
 			packageProductDependencies = (
 				7A2E9F9F2D0A775600329CA3 /* FirebaseAuth */,
+				7A23F1F82D111D3C00DC5CCB /* FirebaseFirestore */,
+				7A23F1FA2D111D6100DC5CCB /* FirebaseStorage */,
 			);
 			productName = DigiLocker;
 			productReference = 7A3D40062CDF1A4700C2ED6D /* DigiLocker.app */;
@@ -597,6 +603,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		7A23F1F82D111D3C00DC5CCB /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7A2E9F972D09447400329CA3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		7A23F1FA2D111D6100DC5CCB /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7A2E9F972D09447400329CA3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
 		7A2E9F9F2D0A775600329CA3 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 7A2E9F972D09447400329CA3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
