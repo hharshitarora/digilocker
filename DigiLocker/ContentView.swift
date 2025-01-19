@@ -156,52 +156,6 @@ struct TipRow: View {
     }
 }
 
-struct ItemCard: View {
-    let item: ScannedItem
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.gray.opacity(0.1))
-                .frame(height: 160)
-                .overlay {
-                    Image(systemName: "cube.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.blue)
-                }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.name)
-                    .font(.headline)
-                    .lineLimit(1)
-                
-                Text(item.description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                
-                HStack {
-                    ForEach(item.tags.prefix(2), id: \.self) { tag in
-                        Text(tag)
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(.blue.opacity(0.1))
-                            .foregroundStyle(.blue)
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-            .padding(12)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.background)
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
-        )
-    }
-}
-
 struct ItemDetailView: View {
     let item: ScannedItem
     let dataManager: DataManager
